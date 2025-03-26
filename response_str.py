@@ -1,0 +1,5 @@
+fill_file_and_tags = str('Нужно указать file и tag')
+file_not_found = str('Файл не найден')
+tag_not_found = str('Тег не найден в этом файле')
+format_xml = str('Файл должен быть формата .xml')
+name_not_exist = str('В файле отсутствует тег с данным названием')

@@ -1,13 +1,11 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import Integer, String, ForeignKey
+from sqlalchemy import String, ForeignKey
 
 
-# Базовый класс
 class Base(DeclarativeBase):
     pass
 
 
-# Таблица Files
 class File(Base):
     __tablename__ = 'files'
 
@@ -19,7 +17,6 @@ class File(Base):
                                              cascade="all, delete-orphan")
 
 
-# Таблица Tags
 class Tag(Base):
     __tablename__ = 'tags'
 
@@ -33,7 +30,6 @@ class Tag(Base):
         cascade="all, delete-orphan")
 
 
-# Таблица Attributes
 class Attribute(Base):
     __tablename__ = 'attributes'
 
