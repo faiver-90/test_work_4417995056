@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 
 from response_str import file_not_found, format_xml
-from schemas.save_schemas import ErrorSchema
+from schemas.schemas import ErrorSchema
 from service.file_service import FileService
 
 bp = Blueprint('files', __name__)
