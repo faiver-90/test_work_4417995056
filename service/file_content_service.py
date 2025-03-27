@@ -1,7 +1,8 @@
 import xml.sax
 
+from sqlalchemy import text
+
 from models.db_init import SessionLocal
-from models.model import File, Tag, Attribute
 
 
 class FileContentService(xml.sax.ContentHandler):
@@ -28,10 +29,14 @@ class FileContentService(xml.sax.ContentHandler):
         """Вызывается один раз в начале документа.
         Сохраняет имя XML-файла в таблицу File.
         """
-        new_file = File(name=self.filename)
-        self.session.add(new_file)
-        self.session.flush()
-        self.file_id = new_file.id
+        insert_file_sql = text("""
+                   INSERT INTO files (name)
+                   VALUES (:filename)
+                   RETURNING id
+               """)
+        result = self.session.execute(insert_file_sql,
+                                      {"filename": self.filename})
+        self.file_id = result.scalar_one()  # Получаем ID вставленного файла
 
     def startElement(self, name, attrs):
         """Вызывается при начале каждого XML-элемента (тега).
@@ -42,17 +47,28 @@ class FileContentService(xml.sax.ContentHandler):
            name (str): Имя тега.
            attrs (xml.sax.xmlreader.AttributesImpl): Атрибуты тега.
        """
-        tag = Tag(name=name, file_id=self.file_id)
-        self.session.add(tag)
-        self.session.flush()
+        insert_tag_sql = text("""
+            INSERT INTO tags (name, file_id)
+            VALUES (:tag_name, :file_id)
+            RETURNING id
+        """)
+        result = self.session.execute(insert_tag_sql, {
+            "tag_name": name,
+            "file_id": self.file_id
+        })
+        tag_id = result.scalar_one()
 
+        # 2. Сохраняем атрибуты тега
         for attr_name in attrs.getNames():
-            attribute = Attribute(
-                name=attr_name,
-                value=attrs.getValue(attr_name),
-                tag_id=tag.id
-            )
-            self.session.add(attribute)
+            insert_attr_sql = text("""
+                INSERT INTO attributes (name, value, tag_id)
+                VALUES (:name, :value, :tag_id)
+            """)
+            self.session.execute(insert_attr_sql, {
+                "name": attr_name,
+                "value": attrs.getValue(attr_name),
+                "tag_id": tag_id
+            })
 
     def endDocument(self):
         """Вызывается в конце XML-документа.
